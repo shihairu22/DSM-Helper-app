@@ -1,22 +1,19 @@
- name: Check Java Version
+name: Check Java Version
 
-   on:
-     workflow_dispatch:  # 允许手动触发
-     schedule:
-       - cron: '0 0 * * *'  # 每天午夜运行一次（可选）
+on:
+  workflow_dispatch:  # 允许手动触发
+jobs:
+  check-java-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-   jobs:
-     check-java-version:
-       runs-on: ubuntu-latest
-       steps:
-         - name: Checkout code
-           uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
 
-         - name: Set up JDK
-           uses: actions/setup-java@v2
-           with:
-             java-version: '11'
-             distribution: 'adopt'
-
-         - name: Check Java version
-           run: ./check_java_version.sh
+      - name: Check Java version
+        run: ./check_java_version.sh
