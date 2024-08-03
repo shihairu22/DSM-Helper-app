@@ -1,56 +1,40 @@
-name: Build and Release APK
+name: Build Android APK
+
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-  build_android:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Java to compile Android project
-        uses: actions/setup-java@v2
-        with:
-          java-version: "17.x"
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17.x'
 
-      - name: Install and set Flutter version
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.13.6"
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.7.12'
 
-      - name: Create the Keystore
-        env:
-          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
-        run: |
-          # import keystore from secrets
-          ls -all
-          echo $KEY_PROPERTIES | base64 -di > android/key.properties
+    - name: Install dependencies
+      run: flutter pub get
 
-      - name: Restore packages
-        run: flutter pub get
+    - name: Build APK
+      run: flutter build apk --release
 
-      - name: Build Android Apk
-        run: flutter build apk --release --flavor=beta
-
-      - name: Upload PGYER File
-        id: pgyer
-        uses: xtayga/upload-pgyer-action@master
-        with:
-          url: https://www.pgyer.com/apiv2/app/upload
-          forms: '{"_api_key":"${{ secrets.PGY_API_KEY }}","buildName":"群晖助手Beta"}'
-          fileForms: '{"file":"build/app/outputs/flutter-apk/app-beta-release.apk"}'
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/app/outputs/flutter-apk/app-beta-release.apk
-          tag: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          overwrite: true
-          body: ""
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: app-release.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
