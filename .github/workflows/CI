@@ -1,0 +1,21 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: ''
+
+    - name: Update Gradle version and check Java version
+      run: ./update_gradle.sh
+
+    - name: Build Flutter project
+      run: flutter build apk
