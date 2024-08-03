@@ -11,9 +11,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up Flutter
-      uses: subosito/flutter-action@v1
+      uses: subosito/flutter-action@v2
       with:
-        flutter-version: '2.5.3' # 你可以根据需要指定Flutter版本
+        flutter-version: '3.7.12' # 你可以根据需要指定Flutter版本
 
     - name: Install dependencies
       run: flutter pub get
