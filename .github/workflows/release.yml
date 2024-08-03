@@ -1,47 +1,55 @@
-name: Build and Release APK
+name: DSM_helper_Android
+
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  build_android:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code from main repository
-        uses: actions/checkout@v3
+      - name: Checkout the code
+        uses: actions/checkout@v2
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v1
+      - name: Setup Java to compile Android project
+        uses: actions/setup-java@v1
         with:
-          flutter-version: '3.7.12'
+          java-version: "17.x"
 
-      - name: Build APK
+      - name: Install and set Flutter version
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.13.6"
+
+      - name: Create the Keystore
+        env:
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
         run: |
-          flutter pub get
-          flutter build apk --release
+          # import keystore from secrets
+          ls -all
+          echo $KEY_PROPERTIES | base64 -di > android/key.properties
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
+      - name: Restore packages
+        run: flutter pub get
 
-      - name: Upload Release Asset
-        id: upload_release_asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Android Apk
+        run: flutter build apk --release --flavor=beta
+
+      - name: Upload PGYER File
+        id: pgyer
+        uses: xtayga/upload-pgyer-action@master
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/app/outputs/flutter-apk/app-release.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
+          url: https://www.pgyer.com/apiv2/app/upload
+          forms: '{"_api_key":"${{ secrets.PGY_API_KEY }}","buildName":"群晖助手Beta"}'
+          fileForms: '{"file":"build/app/outputs/flutter-apk/app-beta-release.apk"}'
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/app/outputs/flutter-apk/app-beta-release.apk
+          tag: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          overwrite: true
+          body: ""
