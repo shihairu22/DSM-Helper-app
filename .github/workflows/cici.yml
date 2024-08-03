@@ -10,6 +10,8 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.7.12'
+    - name: Make update_gradle.sh executable
+      run: chmod +x ./update_gradle.sh
     - name: Update Gradle version and check Java version
       run: ./update_gradle.sh
     - name: Build Flutter project
