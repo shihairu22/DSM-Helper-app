@@ -1,0 +1,22 @@
+name: Flutter Doctor Check
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.5.3' # 你可以根据需要指定Flutter版本
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Run flutter doctor --verbose
+      run: flutter doctor --verbose
